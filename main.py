@@ -630,6 +630,10 @@ def our_unlearn(args, model, device, retain_loader, forget_loader, train_loader,
     return model
 
 
+def unlearn_lra_svd():
+  pass
+
+
 def train(args, model, device, train_loader, optimizer, epoch, mode = "descent", clip=None):
     model.train()
     train_loss= 0
@@ -877,7 +881,8 @@ def main():
             "tarun":tarun_unlearn,
             "grad_ascent'" : unlearn_naive, # NegGrad
             "grad_descent'" : unlearn_naive, # Fine-tune on Retain Set
-            "grad_ascent_descent" : unlearn_naive # NegGrad+
+            "grad_ascent_descent" : unlearn_naive, # NegGrad+
+            "lra_grad_free" : unlearn_lra_svd,
         }
         model.load_state_dict(torch.load( f"./pretrained_models/{args.dataset}_{args.arch}.pt") )
         print("Model Loaded")
