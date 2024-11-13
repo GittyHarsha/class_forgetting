@@ -629,9 +629,120 @@ def our_unlearn(args, model, device, retain_loader, forget_loader, train_loader,
     model.project_weights(get_projection_matrix(device, Mr, Mf))
     return model
 
+def lra_z_rule(layer, relevance, activations, epsilon=1e-6):
+    """
+    Apply the Z-Rule to propagate relevance scores from one layer to the previous layer.
+    
+    Parameters:
+        layer (nn.Module): The current layer whose weights are used for relevance propagation.
+        relevance (torch.Tensor): The relevance scores from the current layer.
+        activations (torch.Tensor): The activations of neurons from the previous layer.
+        epsilon (float): Small constant to avoid division by zero.
+    
+    Returns:
+        torch.Tensor: The relevance scores for the previous layer.
+    """
+    with torch.no_grad():
+        if isinstance(layer, nn.Linear) or isinstance(layer, nn.Conv2d):
+            weights = layer.weight
+            z = torch.mm(activations, weights.t()) + epsilon  # Stabilized relevance denominator
+            relevance = activations.unsqueeze(-1) * weights.unsqueeze(0) * (relevance / z).unsqueeze(1)
+            relevance = relevance.sum(dim=2)  # Sum over all outgoing neurons
+        
+        elif isinstance(layer, nn.BatchNorm2d):
+            pass
+        
+        return relevance
 
-def unlearn_lra_svd():
-  pass
+def apply_LRA(model, device, forget_loader, target_class):
+    """
+    Apply Layer-wise Relevance Analysis using the Z-Rule to identify relevant neurons for unlearning.
+    
+    Parameters:
+        model (nn.Module): The neural network model.
+        device (torch.device): Device to run the computations on (CPU/GPU).
+        forget_loader (DataLoader): DataLoader for the forget set.
+        target_class (int): The class to be unlearned.
+    
+    Returns:
+        dict: Relevance mask indicating relevant neurons for each layer.
+    """
+    model.eval()
+    relevance_masks = {}
+    
+    activations = {}
+    def save_activations(layer, input, output):
+        activations[layer] = output.clone().detach()
+
+    hooks = [layer.register_forward_hook(save_activations) for layer in model.modules() if isinstance(layer, (nn.Linear, nn.Conv2d, nn.BatchNorm2d))]
+    
+    with torch.no_grad():
+        for data, target in forget_loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            break
+
+    for hook in hooks:
+        hook.remove()
+    
+    relevance = torch.zeros_like(output)
+    relevance[:, target_class] = output[:, target_class]
+    
+    for layer in reversed(list(model.modules())):
+        if isinstance(layer, (nn.Linear, nn.Conv2d, nn.BatchNorm2d)):
+            relevance = lra_z_rule(layer, relevance, activations[layer])
+            relevance_masks[layer] = relevance
+    
+    return relevance_masks
+
+def unlearn_lra_svd(args, model, device, retain_loader, forget_loader, target_class, **kwargs):
+    """
+    Unlearning method using true LRA with Z-Rule for neuron selection and SVD for class-specific unlearning.
+    
+    Parameters:
+        args (argparse.Namespace): Parsed arguments.
+        model (nn.Module): The neural network model.
+        device (torch.device): Device to run the computations on (CPU/GPU).
+        retain_loader (DataLoader): DataLoader for the retain set.
+        forget_loader (DataLoader): DataLoader for the forget set.
+        target_class (int): The class to be unlearned.
+    
+    Returns:
+        nn.Module: The modified model after applying unlearning.
+    """
+    relevance_masks = apply_LRA(model, device, forget_loader, target_class)
+    
+    representation_matrix = []
+    with torch.no_grad():
+        for data, _ in forget_loader:
+            data = data.to(device)
+            output = model(data)
+            layer_representations = []
+            
+            for layer, mask in relevance_masks.items():
+                if isinstance(layer, (nn.Linear, nn.Conv2d)):
+                    layer_activations = activations[layer]
+                    layer_representations.append(layer_activations * (mask > 0))
+            
+            representation_matrix.append(torch.cat([rep.flatten() for rep in layer_representations]))
+    
+    representation_matrix = torch.stack(representation_matrix)
+    
+    U, S, V = torch.svd(representation_matrix)
+    S = torch.zeros_like(S)  
+    modified_matrix = torch.mm(U, torch.mm(torch.diag(S), V.t()))
+    
+    with torch.no_grad():
+        index = 0
+        for layer, mask in relevance_masks.items():
+            if isinstance(layer, (nn.Linear, nn.Conv2d)):
+                num_elements = layer.weight.numel()
+                modified_param_data = modified_matrix[index:index+num_elements].reshape(layer.weight.shape)
+                layer.weight.copy_(modified_param_data)
+                index += num_elements
+    
+    return model
+
 
 
 def train(args, model, device, train_loader, optimizer, epoch, mode = "descent", clip=None):
@@ -882,7 +993,7 @@ def main():
             "grad_ascent'" : unlearn_naive, # NegGrad
             "grad_descent'" : unlearn_naive, # Fine-tune on Retain Set
             "grad_ascent_descent" : unlearn_naive, # NegGrad+
-            "lra_grad_free" : unlearn_lra_svd,
+            "unlearn_lra_svd" : unlearn_lra_svd,
         }
         model.load_state_dict(torch.load( f"./pretrained_models/{args.dataset}_{args.arch}.pt") )
         print("Model Loaded")
