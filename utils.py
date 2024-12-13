@@ -1,7 +1,6 @@
 
 import torch
 import torch.nn.functional as F
-import wandb
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 from collections import  Counter
@@ -291,16 +290,6 @@ def test(model, device, data_loader,  unlearn_class_list, class_label_names, num
         print(f"{set_name} Class Wise ACC \n{dict_classwise_acc}")
         print('-'*30) 
         print(f"{set_name} Retain class acc(loss): {100*retain_acc}({retain_loss}) - Forget class acc(loss): {100*forget_acc}({forget_loss})\n")
-        wandb.log({ #"test_loss":test_loss, 
-                    f"{set_name}/acc-forget":100. * forget_acc,
-                    f"{set_name}/acc-retained":100. * retain_acc,
-                    f"{set_name}/metric":100*(metric) ,
-                    f"{set_name}/loss-forget":forget_loss,
-                    f"{set_name}/loss-retained":retain_loss,
-                    f"{set_name}/class-acc/test_acc":dict_classwise_acc,
-                    f"{set_name}/class-loss/test_loss":dict_classwise_loss
-                    }
-                    )
     return retain_acc, forget_acc, metric
 
 
