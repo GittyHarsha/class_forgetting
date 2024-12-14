@@ -414,7 +414,7 @@ def ResNet34(num_classes=1000, dataset = "imagenet"):
     elif "cifar" in dataset.lower():
         ResNet = ResNet_cifar
     elif "svhn" in dataset.lower():
-        ResNet = RenNet_cifar
+        ResNet = ResNet_cifar
     else:
         raise ValueError
     return ResNet(BasicBlock, [3, 4, 6, 3], num_classes=num_classes)
