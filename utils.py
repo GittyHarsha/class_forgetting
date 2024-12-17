@@ -138,6 +138,7 @@ def get_dataset(args):
         args.class_label_names = [i for i in range(10)]
     elif "gtsrb" in args.dataset:
         transform = transforms.Compose([
+            transforms.Resize((32, 32)),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
