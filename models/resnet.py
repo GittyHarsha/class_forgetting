@@ -293,7 +293,7 @@ class ResNet_cifar(nn.Module):
     
 class ResNet_gtsrb(nn.Module):
     def __init__(self, block, num_blocks, num_classes=43, do_log_softmax=True):
-        super(ResNet_cifar, self).__init__()
+        super(ResNet_gtsrb, self).__init__()
         self.in_planes = 64
 
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
