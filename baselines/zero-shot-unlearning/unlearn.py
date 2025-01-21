@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from models import View
+from models_gtk import View
 from torch.nn import functional as F
 
 

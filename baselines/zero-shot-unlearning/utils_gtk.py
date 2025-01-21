@@ -10,14 +10,14 @@ def accuracy(outputs, labels):
 def training_step(model, batch, device):
     images, labels = batch 
     images, labels = images.to(device), labels.to(device)
-    out, *_ = model(images)                  # Generate predictions
+    out = model(images)                  # Generate predictions
     loss = F.cross_entropy(out, labels) # Calculate loss
     return loss
 
 def validation_step(model, batch, device):
     images, labels = batch 
     images, labels = images.to(device), labels.to(device)
-    out, *_ = model(images)                    # Generate predictions
+    out = model(images)                    # Generate predictions
     loss = F.cross_entropy(out, labels)   # Calculate loss
     acc = accuracy(out, labels)           # Calculate accuracy
     return {'Loss': loss.detach(), 'Acc': acc}
