@@ -136,6 +136,19 @@ def get_dataset(args):
         dataset2 = datasets.SVHN(root=args.data_path, split='test', download=True, transform=transform)
         args.num_classes = 10
         args.class_label_names = [i for i in range(10)]
+    elif "gtsrb" in args.dataset:
+        transform = transforms.Compose([
+            transforms.Resize((32, 32)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ])
+        # Load the GTSRB train and test datasets
+        dataset1 = datasets.GTSRB(root=args.data_path, split='train', download=True, transform=transform)
+        dataset2 = datasets.GTSRB(root=args.data_path, split='test', download=True, transform=transform)
+        
+        # Set number of classes and label names
+        args.num_classes = 43  # GTSRB has 43 classes
+        args.class_label_names = [i for i in range(43)]  # Label names as integers 0-42
     else:
         raise ValueError
     return dataset1, dataset2
