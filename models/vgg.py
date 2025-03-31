@@ -71,7 +71,7 @@ class VGG(nn.Module):
                 elif  isinstance(layer, nn.Linear):
                     layer_key = f"fc{layer_ind}"
                     layer_ind+=1 
-                x, layer_acts  = forward_cache_activations(x, layer, layer_key, max_samples)  
+                x, layer_acts  = forward_cache_activations_per_iamge(x, layer, layer_key, max_samples)  
                 act.update(layer_acts)  
             x = x.view(x.size(0), -1) 
         self.num_layer = layer_ind
