@@ -413,6 +413,28 @@ def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, p
     mat = mat[b]
     return mat
 
+def reshape_conv_input_activation_per_image(x, conv_layer=None, kernel_size=3, stride=1, padding=0, dilation=1, max_samples=10000):
+    if conv_layer:
+        kernel_size = conv_layer.kernel_size
+        stride = conv_layer.stride
+        padding = conv_layer.padding 
+        dilation = conv_layer.dilation
+    if x.shape[-1] > 3 * kernel_size[-1]:
+        start_index_i = random.randint(0, x.shape[-2] - 3 * kernel_size[-2])
+        start_index_j = random.randint(0, x.shape[-1] - 3 * kernel_size[-1])
+        sampled_x = x[:, :, start_index_i:start_index_i + 3 * kernel_size[-2], start_index_j:start_index_j + 3 * kernel_size[-1]]
+        x_unfold = torch.nn.functional.unfold(sampled_x, kernel_size, dilation=dilation, padding=padding, stride=stride)
+    else:
+        x_unfold = torch.nn.functional.unfold(x, kernel_size, dilation=dilation, padding=padding, stride=stride)
+    x_unfold = x_unfold.permute(0, 2, 1)
+    N, L, patch_size = x_unfold.shape
+    if L > max_samples:
+        indices = torch.randperm(L)[:max_samples]
+        x_unfold = x_unfold[:, indices, :]
+    feature_vector = x_unfold.contiguous().view(x_unfold.shape[0], -1)
+    return feature_vector
+
+
 def forward_cache_activations(x, layer, key, max_samples=10000):
     act=OrderedDict()  
     if isinstance(layer, nn.Conv2d):
