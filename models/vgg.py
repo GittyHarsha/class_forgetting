@@ -9,7 +9,7 @@ import torch
 from collections import OrderedDict
 from copy import deepcopy
 import torch.nn.functional as F
-from .model_utils import reshape_conv_input_activation, forward_cache_activations, forward_cache_activations_per_iamge, forward_cache_projections, forward_cache_svd
+from .model_utils import reshape_conv_input_activation, forward_cache_activations, forward_cache_activations_per_image, forward_cache_projections, forward_cache_svd
 __all__ = [
     'VGG', 'vgg11', 'vgg11_bn', 'vgg13', 'vgg13_bn', 'vgg16', 'vgg16_bn',
     'vgg19_bn', 'vgg19',
@@ -71,7 +71,7 @@ class VGG(nn.Module):
                 elif  isinstance(layer, nn.Linear):
                     layer_key = f"fc{layer_ind}"
                     layer_ind+=1 
-                x, layer_acts  = forward_cache_activations_per_iamge(x, layer, layer_key, max_samples)  
+                x, layer_acts  = forward_cache_activations_per_image(x, layer, layer_key, max_samples)  
                 act.update(layer_acts)  
             x = x.view(x.size(0), -1) 
         self.num_layer = layer_ind
