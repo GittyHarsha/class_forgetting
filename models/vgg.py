@@ -23,6 +23,7 @@ class VGG(nn.Module):
     def __init__(self, features, num_classes = 10, dataset="imagenet", do_log_softmax=True,dropout: float = 0.5, logits_no_bias=False):
         super(VGG, self).__init__()
         self.features = features
+        self.logits_no_bias = logits_no_bias
         if "imagenet" in dataset or  "vggface" in dataset:
             self.classifier = nn.Sequential(
                 nn.Linear(512*7*7, 4096),
