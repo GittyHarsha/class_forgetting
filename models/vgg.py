@@ -55,10 +55,12 @@ class VGG(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = x.view(x.size(0), -1)
+        if logits_no_bias:
+            penultimate_logits = x
         x = self.classifier(x)
         if logits_no_bias:
             final_layer_bias = self.classifier[-1].bias
-            return x - final_layer_bias
+            return penultimate_logits, x - final_layer_bias
             
         if self.do_log_softmax:
             x =  F.log_softmax(x, dim=1)
