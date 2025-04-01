@@ -20,7 +20,7 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, features, num_classes = 10, dataset="imagenet", do_log_softmax=True,dropout: float = 0.5):
+    def __init__(self, features, num_classes = 10, dataset="imagenet", do_log_softmax=True,dropout: float = 0.5, logits_no_bias=False):
         super(VGG, self).__init__()
         self.features = features
         if "imagenet" in dataset or  "vggface" in dataset:
@@ -56,6 +56,10 @@ class VGG(nn.Module):
         x = self.features(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
+        if logits_no_bias:
+            final_layer_bias = self.classifier[-1].bias
+            return x - final_layer_bias
+            
         if self.do_log_softmax:
             x =  F.log_softmax(x, dim=1)
         return x
