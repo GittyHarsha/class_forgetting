@@ -20,10 +20,9 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, features, num_classes = 10, dataset="imagenet", do_log_softmax=True,dropout: float = 0.5, logits_no_bias=False):
+    def __init__(self, features, num_classes = 10, dataset="imagenet", do_log_softmax=True,dropout: float = 0.5):
         super(VGG, self).__init__()
         self.features = features
-        self.logits_no_bias = logits_no_bias
         if "imagenet" in dataset or  "vggface" in dataset:
             self.classifier = nn.Sequential(
                 nn.Linear(512*7*7, 4096),
@@ -53,13 +52,13 @@ class VGG(nn.Module):
                 m.bias.data.zero_()
 
 
-    def forward(self, x):
+    def forward(self, x, logits_no_bias=False):
         x = self.features(x)
         x = x.view(x.size(0), -1)
-        if self.logits_no_bias:
+        if logits_no_bias:
             penultimate_logits = x
         x = self.classifier(x)
-        if self.logits_no_bias:
+        if logits_no_bias:
             final_layer_bias = self.classifier[-1].bias
             return penultimate_logits, x - final_layer_bias
             
