@@ -52,20 +52,13 @@ class VGG(nn.Module):
                 m.bias.data.zero_()
 
 
-    def forward(self, x, logits_no_bias=False):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        if logits_no_bias:
-            penultimate_logits = x
-        x = self.classifier(x)
-        if logits_no_bias:
-            final_layer_bias = self.classifier[-1].bias
-            return penultimate_logits, x - final_layer_bias
-            
+    def forward(self, x, get_embedding=False):
+        x = self.features(x).view(x.size(0), -1)
+        out = self.classifier(x)
         if self.do_log_softmax:
-            x =  F.log_softmax(x, dim=1)
-        return x
-    
+            out = F.log_softmax(out, dim=1)
+        return (out, x) if get_embedding else out
+        
     def get_activations(self, x, max_samples=10000):
         act=OrderedDict()  #{"pre":OrderedDict(), "post":OrderedDict()}
         layer_ind = 0
