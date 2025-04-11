@@ -468,7 +468,7 @@ def forward_cache_activations_per_image(x, layer, key, max_samples=10000):
 def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_samples=10000):
     Proj=OrderedDict()  
     if isinstance(layer, nn.Conv2d):
-        activation = reshape_conv_input_activation(x.clone().detach(), layer, prev_activations, key, max_samples =  max_samples).transpose(0,1)
+        activation = reshape_conv_input_activation(x.clone().detach(), layer, activations_dict=prev_activations, layer_key=key, max_samples =  max_samples).transpose(0,1)
         
         if prev_activations is not None:
             if key in prev_activations:
