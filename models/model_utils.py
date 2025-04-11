@@ -392,7 +392,7 @@ def compute_conv_output_size(Lin,kernel_size,stride=1,padding=0,dilation=1):
     return int(np.floor((Lin[0]+2*padding[0]-dilation[0]*(kernel_size[0]-1)-1)/float(stride[0])+1)), int(np.floor((Lin[1]+2*padding[1]-dilation[1]*(kernel_size[1]-1)-1)/float(stride[1])+1))
 
 
-def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, padding=0, dilation=1, max_samples=10000):
+def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, padding=0, dilation=1, activations_dict=None, layer_key=None, max_samples=10000):
     ### FAST CODE (Avoid for loops)
     if conv_layer:
         kernel_size = conv_layer.kernel_size
@@ -400,8 +400,13 @@ def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, p
         padding =  conv_layer.padding 
         dilation = conv_layer.dilation
     if x.shape[-1] > 3*kernel_size[-1]:
-        start_index_i =random.randint(0, x.shape[-1]-3*kernel_size[-1])
-        start_index_j =random.randint(0, x.shape[-2]-3*kernel_size[-2])
+        act_key = str(layer_key+"_start_indices")
+        if activations_dict is not None and act_key in activations_dict:
+            start_index_i, start_index_j = activations_dict[act_key]
+        else:
+            start_index_i =random.randint(0, x.shape[-1]-3*kernel_size[-1])
+            start_index_j =random.randint(0, x.shape[-2]-3*kernel_size[-2])
+            activations_dcit[act_key]=[start_index_i, start_index_j]
         sampled_x = x[:,:,start_index_i:start_index_i+3*kernel_size[-2],start_index_j:start_index_j+3*kernel_size[-1] ]
         x_unfold = torch.nn.functional.unfold(sampled_x, kernel_size, dilation=dilation, padding=padding, stride=stride)
     else:
@@ -463,7 +468,7 @@ def forward_cache_activations_per_image(x, layer, key, max_samples=10000):
 def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_samples=10000):
     Proj=OrderedDict()  
     if isinstance(layer, nn.Conv2d):
-        activation = reshape_conv_input_activation(x.clone().detach(), layer, max_samples =  max_samples).transpose(0,1)
+        activation = reshape_conv_input_activation(x.clone().detach(), layer, pre_activations, key, max_samples =  max_samples).transpose(0,1)
         
         if prev_activations is not None:
             if key in prev_activations:
