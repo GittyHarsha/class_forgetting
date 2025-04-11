@@ -466,10 +466,11 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         activation = reshape_conv_input_activation(x.clone().detach(), layer, max_samples =  max_samples).transpose(0,1)
         
         if prev_activations is not None:
-            prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
-            activation = prev_activations[key]
-        else:
-            prev_activations[key] = activation
+            if key in prev_activations:
+                prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
+                activation = prev_activations[key]
+            else:
+                prev_activations[key] = activation
         
         Ur,Sr,_ = torch.linalg.svd(activation, full_matrices=False)
         sval_total = (Sr**2).sum()
@@ -482,10 +483,11 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         activation = x.clone().detach().transpose(0,1)
         
         if prev_activations is not None:
-            prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
-            activation = prev_activations[key]
-        else:
-            prev_activations[key] = activation
+            if key in prev_activations:
+                prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
+                activation = prev_activations[key]
+            else:
+                prev_activations[key] = activation
             
         Ur,Sr,_ = torch.linalg.svd(activation, full_matrices=False)
         sval_total = (Sr**2).sum()
