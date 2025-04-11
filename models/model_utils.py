@@ -439,6 +439,7 @@ def forward_cache_activations(x, layer, key, max_samples=10000):
     act=OrderedDict()  
     if isinstance(layer, nn.Conv2d):
         act[key]=reshape_conv_input_activation(x.clone().detach(), layer,max_samples =  max_samples)
+        
         x = layer(x)
     elif isinstance(layer, nn.Linear):
         act[key]=x.clone().detach()
@@ -459,10 +460,17 @@ def forward_cache_activations_per_image(x, layer, key, max_samples=10000):
         x = layer(x)
     return x, act 
 
-def forward_cache_projections(x, layer, key, alpha, max_samples=10000):
+def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_samples=10000):
     Proj=OrderedDict()  
     if isinstance(layer, nn.Conv2d):
         activation = reshape_conv_input_activation(x.clone().detach(), layer, max_samples =  max_samples).transpose(0,1)
+        
+        if prev_activations is not None:
+            prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
+            activation = prev_activations[key]
+        else:
+            prev_activations[key] = activation
+        
         Ur,Sr,_ = torch.linalg.svd(activation, full_matrices=False)
         sval_total = (Sr**2).sum()
         sval_ratio = (Sr**2)/sval_total
@@ -472,6 +480,13 @@ def forward_cache_projections(x, layer, key, alpha, max_samples=10000):
         x = layer(x)
     elif isinstance(layer, nn.Linear):
         activation = x.clone().detach().transpose(0,1)
+        
+        if prev_activations is not None:
+            prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
+            activation = prev_activations[key]
+        else:
+            prev_activations[key] = activation
+            
         Ur,Sr,_ = torch.linalg.svd(activation, full_matrices=False)
         sval_total = (Sr**2).sum()
         sval_ratio = (Sr**2)/sval_total
