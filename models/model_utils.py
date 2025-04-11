@@ -467,7 +467,7 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         
         if prev_activations is not None:
             if key in prev_activations:
-                prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
+                prev_activations[key] = torch.cat([activation, prev_activations[key]], dim=0)
                 activation = prev_activations[key]
             else:
                 prev_activations[key] = activation
@@ -484,7 +484,7 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         
         if prev_activations is not None:
             if key in prev_activations:
-                prev_activations[key] = torch.cat(activation, prev_activations[key], dim=0)
+                prev_activations[key] = torch.cat([activation, prev_activations[key]], dim=0)
                 activation = prev_activations[key]
             else:
                 prev_activations[key] = activation
