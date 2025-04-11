@@ -95,7 +95,7 @@ class VGG(nn.Module):
         self.num_layer = layer_ind
         return U, S
 
-    def get_scaled_projections(self, x, alpha, max_samples=10000):
+    def get_scaled_projections(self, x, alpha, prev_activations=None, max_samples=10000):
         Proj =OrderedDict()  #{"pre":OrderedDict(), "post":OrderedDict()}
         layer_ind = 0
         for layers in [self.features, self.classifier]:
@@ -107,7 +107,7 @@ class VGG(nn.Module):
                     layer_key = f"fc{layer_ind}"
                     layer_ind+=1 
                     
-                x, layer_proj  = forward_cache_projections(x, layer, layer_key, alpha, max_samples)  
+                x, layer_proj  = forward_cache_projections(x, layer, layer_key, alpha, prev_activations, max_samples)  
                 Proj.update(layer_proj)  
             x = x.view(x.size(0), -1) 
         self.num_layer = layer_ind
