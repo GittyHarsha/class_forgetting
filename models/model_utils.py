@@ -467,7 +467,8 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         
         if prev_activations is not None:
             if key in prev_activations:
-                prev_activations[key] = torch.cat([activation, prev_activations[key]], dim=0)
+                print(f"Conv2d: prev_activation[{key] shape: {prev_activations[key].shape}, shape of activation: {activation.shape}")
+                prev_activations[key] = torch.cat([prev_activations[key], activation], dim=0)
                 activation = prev_activations[key]
             else:
                 prev_activations[key] = activation
@@ -484,7 +485,8 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         
         if prev_activations is not None:
             if key in prev_activations:
-                prev_activations[key] = torch.cat([activation, prev_activations[key]], dim=0)
+                print(f"Linear: prev_activation[{key] shape: {prev_activations[key].shape}, shape of activation: {activation.shape}")
+                prev_activations[key] = torch.cat([prev_activations[key], activation], dim=0)
                 activation = prev_activations[key]
             else:
                 prev_activations[key] = activation
