@@ -403,6 +403,7 @@ def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, p
         act_key = str(layer_key+"_start_indices")
         if activations_dict is not None and act_key in activations_dict:
             start_index_i, start_index_j = activations_dict[act_key]
+            print(f"layer: {layer_key}, reusing starting indices: ({start_index_i}, {start_index_j})")
         else:
             start_index_i =random.randint(0, x.shape[-1]-3*kernel_size[-1])
             start_index_j =random.randint(0, x.shape[-2]-3*kernel_size[-2])
