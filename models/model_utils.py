@@ -408,6 +408,8 @@ def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, p
             start_index_i =random.randint(0, x.shape[-1]-3*kernel_size[-1])
             start_index_j =random.randint(0, x.shape[-2]-3*kernel_size[-2])
             activations_dict[act_key]=[start_index_i, start_index_j]
+            print(f"layer: {layer_key}, first time: starting indices: ({start_index_i}, {start_index_j})")
+
         sampled_x = x[:,:,start_index_i:start_index_i+3*kernel_size[-2],start_index_j:start_index_j+3*kernel_size[-1] ]
         x_unfold = torch.nn.functional.unfold(sampled_x, kernel_size, dilation=dilation, padding=padding, stride=stride)
     else:
