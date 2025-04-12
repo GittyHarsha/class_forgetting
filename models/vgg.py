@@ -118,6 +118,7 @@ class VGG(nn.Module):
         for layers in [self.features, self.classifier]:
             for layer in layers:
                 if isinstance(layer, nn.Conv2d)  :
+                    print(f"layer: conv({layer_ind})")
                     layer.weight.data = torch.mm(layer.weight.data.flatten(1), projection_mat_dict[f"conv{layer_ind}"].transpose(0,1)).view_as(layer.weight.data)
                     layer_ind+=1
                 elif isinstance(layer, nn.Linear):
