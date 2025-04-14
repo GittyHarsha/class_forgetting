@@ -403,12 +403,10 @@ def reshape_conv_input_activation(x, conv_layer=None, kernel_size=3, stride=1, p
         act_key = str(layer_key+"_start_indices")
         if activations_dict is not None and act_key in activations_dict:
             start_index_i, start_index_j = activations_dict[act_key]
-            print(f"layer: {layer_key}, reusing starting indices: ({start_index_i}, {start_index_j})")
         else:
             start_index_i =random.randint(0, x.shape[-1]-3*kernel_size[-1])
             start_index_j =random.randint(0, x.shape[-2]-3*kernel_size[-2])
             activations_dict[act_key]=[start_index_i, start_index_j]
-            print(f"layer: {layer_key}, first time: starting indices: ({start_index_i}, {start_index_j})")
 
         sampled_x = x[:,:,start_index_i:start_index_i+3*kernel_size[-2],start_index_j:start_index_j+3*kernel_size[-1] ]
         x_unfold = torch.nn.functional.unfold(sampled_x, kernel_size, dilation=dilation, padding=padding, stride=stride)
@@ -475,10 +473,8 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         
         if prev_activations is not None:
             if key in prev_activations:
-                print(f"Conv2d: prev_activation[{key}] shape: {prev_activations[key].shape}, shape of activation: {activation.shape}")
                 prev_activations[key] = torch.cat([prev_activations[key], activation], dim=1)
                 activation = prev_activations[key]
-                print(f"shape after concat: {activation.shape}")
             else:
                 prev_activations[key] = activation
         
@@ -494,10 +490,8 @@ def forward_cache_projections(x, layer, key, alpha, prev_activations=None, max_s
         
         if prev_activations is not None:
             if key in prev_activations:
-                print(f"Linear: prev_activation[{key}] shape: {prev_activations[key].shape}, shape of activation: {activation.shape}")
                 prev_activations[key] = torch.cat([prev_activations[key], activation], dim=1)
                 activation = prev_activations[key]
-                print(f"shape after concat: {activation.shape}")
             else:
                 prev_activations[key] = activation
             
