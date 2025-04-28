@@ -192,8 +192,8 @@ class ResNet_cifar(nn.Module):
         super(ResNet_cifar, self).__init__()
         self.in_planes = 64
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
-                               stride=1, padding=1, bias=False)
+        # Update conv1 to use a 7x7 kernel with stride=2 and padding=3
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
@@ -220,7 +220,7 @@ class ResNet_cifar(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.fc(out)
         if self.do_log_softmax:
-            out =  F.log_softmax(out, dim=1)
+            out = F.log_softmax(out, dim=1)
         return out
     
     def get_activations(self, x, max_samples=10000):      

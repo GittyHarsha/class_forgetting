@@ -92,6 +92,52 @@ def get_dataset(args):
             dataset2 = datasets.CIFAR100(root=args.data_path, train=False, download=True, transform=test_transform)
             args.num_classes=100
             args.class_label_names = ['apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle', 'bicycle', 'bottle', 'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel', 'can', 'castle', 'caterpillar', 'cattle', 'chair', 'chimpanzee', 'clock', 'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur', 'dolphin', 'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster', 'house', 'kangaroo', 'computer_keyboard', 'lamp', 'lawn_mower', 'leopard', 'lion', 'lizard', 'lobster', 'man', 'maple_tree', 'motorcycle', 'mountain', 'mouse', 'mushroom', 'oak_tree', 'orange', 'orchid', 'otter', 'palm_tree', 'pear', 'pickup_truck', 'pine_tree', 'plain', 'plate', 'poppy', 'porcupine', 'possum', 'rabbit', 'raccoon', 'ray', 'road', 'rocket', 'rose', 'sea', 'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail', 'snake', 'spider', 'squirrel', 'streetcar', 'sunflower', 'sweet_pepper', 'table', 'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout', 'tulip', 'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman', 'worm']
+        
+        elif args.dataset == "cifar20":
+            # Define superclass mapping
+            superclass_mapping = {
+                'aquatic mammals': [4, 30, 55, 72, 95],
+                'fish': [1, 32, 67, 73, 91],
+                'flowers': [54, 62, 70, 82, 92],
+                'food containers': [9, 10, 16, 28, 61],
+                'fruit and vegetables': [0, 51, 53, 57, 83],
+                'household electrical devices': [22, 39, 40, 86, 87],
+                'household furniture': [5, 20, 25, 84, 94],
+                'insects': [6, 7, 14, 18, 24],
+                'large carnivores': [3, 42, 43, 88, 97],
+                'large man-made outdoor things': [12, 17, 37, 68, 76],
+                'large natural outdoor scenes': [23, 33, 49, 60, 71],
+                'large omnivores and herbivores': [15, 19, 21, 31, 38],
+                'medium-sized mammals': [34, 63, 64, 66, 75],
+                'non-insect invertebrates': [26, 45, 77, 79, 99],
+                'people': [2, 11, 35, 46, 98],
+                'reptiles': [27, 29, 44, 78, 93],
+                'small mammals': [36, 50, 65, 74, 80],
+                'trees': [47, 52, 56, 59, 96],
+                'vehicles 1': [8, 13, 48, 58, 90],
+                'vehicles 2': [41, 69, 81, 85, 89]
+            }
+        
+            # Reverse mapping for relabeling
+            reverse_mapping = {}
+            for superclass, fine_classes in enumerate(superclass_mapping.values()):
+                for fine_class in fine_classes:
+                    reverse_mapping[fine_class] = superclass
+        
+            # Custom transform to remap CIFAR-100 labels to CIFAR-20
+            class CIFAR20Dataset(datasets.CIFAR100):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, **kwargs)
+                    self.targets = [reverse_mapping[target] for target in self.targets]
+        
+            if args.train_transform:
+                dataset1 = CIFAR20Dataset(root=args.data_path, train=True, download=True, transform=train_transform)
+            else:
+                dataset1 = CIFAR20Dataset(root=args.data_path, train=True, download=True, transform=test_transform)
+            dataset2 = CIFAR20Dataset(root=args.data_path, train=False, download=True, transform=test_transform)
+            args.num_classes = 20
+            args.class_label_names = list(superclass_mapping.keys())
+
         else:
             raise ValueError
     elif "imagenet" in args.dataset:
